@@ -8,7 +8,7 @@ Jetpack Composeの学習用に作成した、モダンなAndroid開発技術（M
 - リアルタイムでのリスト表示
 
 ## 📸 スクリーンショット (Screenshots)
-![Screenshot of Memo App](ここに画像をアップロードしてURLを貼る)
+![Screenshot of Memo App](https://github.com/kazuya-dev0707/SimpleMemoApp-Android/issues/3) 
    
 
 ## 🛠️ 使用技術 (Tech Stack)

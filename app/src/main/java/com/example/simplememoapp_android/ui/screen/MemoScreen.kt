@@ -1,5 +1,7 @@
 package com.example.simplememoapp_android.ui.screen
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,9 +12,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +29,57 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.simplememoapp_android.data.model.Memo
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.simplememoapp_android.ui.state.MemoUiState
+import com.example.simplememoapp_android.ui.viewmodel.MemoViewModel
+
+@OptIn(ExperimentalMaterial3Api::class) // ← Scaffoldなどで必要なら追加
+@Composable
+fun MemoScreen(viewModel: MemoViewModel = viewModel()) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("爆速メモアプリ") })
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .padding(paddingValues)
+                .fillMaxSize()
+        ) {
+            MemoInputSection(onAddClick = { text ->
+                viewModel.addMemo(text)
+            })
+
+            when (val state = uiState) {
+                // 「ローディング中」の命令が来たら
+                is MemoUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator() // クルクル回るインジケータを表示
+                    }
+                }
+                // 「データが空」の命令が来たら
+                is MemoUiState.Empty -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("メモはありません。最初のメモを追加しよう！")
+                    }
+                }
+                // 「成功（データあり）」の命令が来たら
+                is MemoUiState.Success -> {
+                    // MemoListSectionを舞台に登場させ、メモのリストを渡す
+                    MemoListSection(memos = state.memos)
+                }
+                // 「エラー」の命令が来たら
+                is MemoUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("エラーが発生しました: ${state.message}")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun MemoItem(memo: Memo) {

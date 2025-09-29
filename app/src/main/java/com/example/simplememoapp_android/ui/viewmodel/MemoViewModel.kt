@@ -1,44 +1,47 @@
 package com.example.simplememoapp_android.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.simplememoapp_android.data.model.Memo
+import com.example.simplememoapp_android.data.repository.MemoRepository
 import com.example.simplememoapp_android.ui.state.MemoUiState
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class MemoViewModel : ViewModel() {
+class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
 
-    // ViewModelの内部でのみ変更可能なUI状態
-    private val _uiState = MutableStateFlow<MemoUiState>(MemoUiState.Empty)
-
-    // UIへは、変更不可能な読み取り専用のStateFlowとして公開する
-    val uiState: StateFlow<MemoUiState> = _uiState.asStateFlow()
-
-    /**
-     * 新しいメモを追加する
-     * @param text 入力されたメモの本文
-     */
-    fun addMemo(text: String) {
-        // 入力チェック：空白文字のみの場合は何もしない
-        if (text.isBlank()) {
-            return
+    // Repositoryから流れてくる`Flow<List<Memo>>`を、UIが表示すべき`StateFlow<MemoUiState>`に変換する
+    val uiState: StateFlow<MemoUiState> = repository.allMemos
+        .map { memos ->
+            if (memos.isEmpty()) {
+                MemoUiState.Empty
+            } else {
+                MemoUiState.Success(memos)
+            }
         }
-
-        val newMemo = Memo(
-            text = text.trim() // 前後の空白は除去
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = MemoUiState.Loading
         )
 
-        // 現在の状態を「不変的」に更新する
-        _uiState.update { currentState ->
-            val currentMemos = if (currentState is MemoUiState.Success) {
-                currentState.memos
-            } else {
-                emptyList()
-            }
-            val newMemos = listOf(newMemo) + currentMemos
-            MemoUiState.Success(newMemos)
+    /**
+     * 新しいメモを追加します。
+     * Repositoryからの処理結果（成功・失敗）を受け取り、UIに反映します。
+     * @param text 追加するメモの本文。
+     */
+    fun addMemo(text: String) {
+        if (text.isBlank()) return
+
+        viewModelScope.launch {
+            repository.insert(text.trim())
+                .onFailure { e ->
+                    // 失敗時はログに出力する（エラーUIへの反映は今後の課題）
+                    println("メモの挿入に失敗しました: ${e.message}")
+                }
         }
     }
 }

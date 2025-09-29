@@ -26,16 +26,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import java.time.LocalDateTime
 import com.example.simplememoapp_android.data.model.Memo
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.state.MemoUiState
 import com.example.simplememoapp_android.ui.viewmodel.MemoViewModel
+import com.example.simplememoapp_android.ui.viewmodel.MemoViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class) // ← Scaffoldなどで必要なら追加
 @Composable
-fun MemoScreen(viewModel: MemoViewModel = viewModel()) {
+fun MemoScreen() {
+
+    // ContextからApplicationインスタンスを取得し、Repositoryにアクセス
+    val application = LocalContext.current.applicationContext as MemoApplication
+    val repository = application.repository
+
+    // カスタムファクトリを使ってViewModelを生成
+    val viewModel: MemoViewModel = viewModel(
+        factory = MemoViewModelFactory(repository)
+    )
+
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -100,7 +114,12 @@ private fun MemoItem(memo: Memo) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMemoItem() {
-    MemoItem(memo = Memo(text = "これはプレビュー用のメモです！"))
+    // createdAt をダミーデータに追加
+    MemoItem(memo = Memo(
+        id = 1, // プレビュー用に適当なID
+        text = "これはプレビュー用のメモです！",
+        createdAt = LocalDateTime.now()
+    ))
 }
 
 // 部品2：メモ入力エリア
@@ -163,9 +182,9 @@ fun PreviewMemoListSection() {
     com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
         // ダミーのデータを用意して、リストがどう見えるか確認する
         val dummyMemos = listOf(
-            Memo(text = "キックボクシングに行く"),
-            Memo(text = "タリーズで実装する"),
-            Memo(text = "夜はジムで筋トレ")
+            Memo(id = 1, text = "キックボクシングに行く", createdAt = LocalDateTime.now()),
+            Memo(id = 2, text = "タリーズで実装する", createdAt = LocalDateTime.now()),
+            Memo(id = 3, text = "夜はジムで筋トレ", createdAt = LocalDateTime.now())
         )
         MemoListSection(memos = dummyMemos)
     }

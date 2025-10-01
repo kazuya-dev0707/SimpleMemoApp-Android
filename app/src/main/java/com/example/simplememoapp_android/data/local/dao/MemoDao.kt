@@ -1,6 +1,7 @@
 package com.example.simplememoapp_android.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.simplememoapp_android.data.model.Memo
@@ -13,4 +14,7 @@ interface MemoDao {
 
     @Insert
     suspend fun insertMemo(memo: Memo)
+
+    @Delete
+    suspend fun deleteMemo(memo: Memo)
 }

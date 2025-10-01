@@ -44,4 +44,20 @@ class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
                 }
         }
     }
+
+    /**
+     * 指定されたメモを削除するようRepositoryに依頼します。
+     * DB操作はUIスレッドをブロックしないよう、viewModelScopeで実行します。
+     * @param memo 削除対象のMemoオブジェクト。
+     */
+    fun deleteMemo(memo: Memo) { 
+        viewModelScope.launch {
+            repository.delete(memo)
+                .onFailure { e -> // ← 失敗時の処理を追加
+                    // 失敗時はログに出力する（エラーUIへの反映は今後の課題）
+                    println("メモの削除に失敗しました: ${e.message}")
+                }
+        }
+    }
+    
 }

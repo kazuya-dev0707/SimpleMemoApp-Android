@@ -10,10 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -82,7 +86,13 @@ fun MemoScreen() {
                 // 「成功（データあり）」の命令が来たら
                 is MemoUiState.Success -> {
                     // MemoListSectionを舞台に登場させ、メモのリストを渡す
-                    MemoListSection(memos = state.memos)
+                    MemoListSection(
+                        memos = state.memos,
+                        // ここで onDeleteClick の実処理 (ViewModelのメソッド呼び出し) を渡す
+                        onDeleteClick = { memo ->
+                            viewModel.deleteMemo(memo)
+                        }
+                    )
                 }
                 // 「エラー」の命令が来たら
                 is MemoUiState.Error -> {
@@ -96,18 +106,33 @@ fun MemoScreen() {
 }
 
 @Composable
-private fun MemoItem(memo: Memo) {
-    // Cardで囲むことで、メモが一つのかたまりとして見やすくなる
+private fun MemoItem(
+    memo: Memo,
+    onDeleteClick: (Memo) -> Unit // ← これを追加！
+) {
     Card(
         modifier = Modifier
-            .fillMaxWidth() // 横幅いっぱいに広げる
-            .padding(horizontal = 16.dp, vertical = 4.dp) // 外側の余白
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
-        // Cardの中にTextを配置する
-        Text(
-            text = memo.text,
-            modifier = Modifier.padding(16.dp) // 内側の余白
-        )
+        Row( // Cardの中身をRowにして、テキストとボタンを横並びにする
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = memo.text,
+                modifier = Modifier
+                    .weight(1f) // テキストが残りのスペースを全て使う
+                    .padding(16.dp)
+            )
+            // ゴミ箱アイコンのボタンを追加
+            IconButton(onClick = { onDeleteClick(memo) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "メモを削除"
+                )
+            }
+        }
     }
 }
 
@@ -115,11 +140,16 @@ private fun MemoItem(memo: Memo) {
 @Composable
 fun PreviewMemoItem() {
     // createdAt をダミーデータに追加
-    MemoItem(memo = Memo(
-        id = 1, // プレビュー用に適当なID
-        text = "これはプレビュー用のメモです！",
-        createdAt = LocalDateTime.now()
-    ))
+    MemoItem(
+        memo = Memo(
+            id = 1, // プレビュー用に適当なID
+            text = "これはプレビュー用のメモです！",
+            createdAt = LocalDateTime.now()
+        ),
+        onDeleteClick = { clickedMemo ->
+            println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.text}")
+        }
+    )
 }
 
 // 部品2：メモ入力エリア
@@ -163,14 +193,20 @@ fun PreviewMemoInputSection() {
 
 // 部品3：メモのリスト全体
 @Composable
-private fun MemoListSection(memos: List<Memo>) {
+private fun MemoListSection(
+    memos: List<Memo>,
+    onDeleteClick: (Memo) -> Unit // onDeleteClick を引数に追加
+) {
     // ① 大量のアイテムを効率的に表示するためのリスト
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         // ② memosリストの中身を一つずつ取り出して表示
         items(memos) { memo ->
-            MemoItem(memo = memo) // Step1で作った部品をここで使う！
+            MemoItem(
+                memo = memo,
+                onDeleteClick = onDeleteClick // MemoItemにコールバックを渡す
+            ) 
         }
     }
 }
@@ -186,6 +222,11 @@ fun PreviewMemoListSection() {
             Memo(id = 2, text = "タリーズで実装する", createdAt = LocalDateTime.now()),
             Memo(id = 3, text = "夜はジムで筋トレ", createdAt = LocalDateTime.now())
         )
-        MemoListSection(memos = dummyMemos)
+        MemoListSection(
+            memos = dummyMemos,
+            onDeleteClick = { memo ->
+                println("プレビュー (List): メモ削除ボタンクリック: ${memo.text}")
+            }
+        )
     }
 }

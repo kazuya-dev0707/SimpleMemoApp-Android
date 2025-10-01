@@ -19,10 +19,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +43,8 @@ import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.state.MemoUiState
 import com.example.simplememoapp_android.ui.viewmodel.MemoViewModel
 import com.example.simplememoapp_android.ui.viewmodel.MemoViewModelFactory
+import com.example.simplememoapp_android.ui.viewmodel.UiEvent
+import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class) // ← Scaffoldなどで必要なら追加
 @Composable
@@ -56,7 +61,30 @@ fun MemoScreen() {
 
     val uiState by viewModel.uiState.collectAsState()
 
+    /**
+     * Snackbarの状態を管理し、表示を制御するための司令塔。
+     */
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    /**
+     * ViewModelからの単発イベントを監視し、UIに反映させる。
+     * この画面が初めて表示された時に一度だけ実行され、イベントを待ち受ける。
+     */
+    LaunchedEffect(Unit) {
+        viewModel.eventFlow.collectLatest { event ->
+            when (event) {
+                is UiEvent.ShowSnackbar -> {
+                    snackbarHostState.showSnackbar(
+                        message = event.message
+                    )
+                }
+            }
+        }
+    }
+
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(title = { Text("爆速メモアプリ") })
         }

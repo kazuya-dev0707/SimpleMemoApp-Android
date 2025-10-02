@@ -148,7 +148,7 @@ private fun MemoItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = memo.text,
+                text = memo.content,
                 modifier = Modifier
                     .weight(1f) // テキストが残りのスペースを全て使う
                     .padding(16.dp)
@@ -171,11 +171,13 @@ fun PreviewMemoItem() {
     MemoItem(
         memo = Memo(
             id = 1, // プレビュー用に適当なID
-            text = "これはプレビュー用のメモです！",
-            createdAt = LocalDateTime.now()
+            title = "プレビュー用のメモ",
+            content = "これはプレビュー用のメモです！",
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
         ),
         onDeleteClick = { clickedMemo ->
-            println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.text}")
+            println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.content}")
         }
     )
 }
@@ -246,14 +248,14 @@ fun PreviewMemoListSection() {
     com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
         // ダミーのデータを用意して、リストがどう見えるか確認する
         val dummyMemos = listOf(
-            Memo(id = 1, text = "キックボクシングに行く", createdAt = LocalDateTime.now()),
-            Memo(id = 2, text = "タリーズで実装する", createdAt = LocalDateTime.now()),
-            Memo(id = 3, text = "夜はジムで筋トレ", createdAt = LocalDateTime.now())
+            Memo(id = 1, title = "キックボクシング", content = "キックボクシングに行く", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now()),
+            Memo(id = 2, title = "タリーズ", content = "タリーズで実装する", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now()),
+            Memo(id = 3, title = "筋トレ", content = "夜はジムで筋トレ", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
         )
         MemoListSection(
             memos = dummyMemos,
             onDeleteClick = { memo ->
-                println("プレビュー (List): メモ削除ボタンクリック: ${memo.text}")
+                println("プレビュー (List): メモ削除ボタンクリック: ${memo.content}")
             }
         )
     }

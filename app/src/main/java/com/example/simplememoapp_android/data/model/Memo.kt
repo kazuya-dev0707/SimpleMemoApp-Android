@@ -7,7 +7,9 @@ import java.time.LocalDateTime
 @Entity(tableName = "memos")
 data class Memo(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val text: String,
-    val createdAt: LocalDateTime // 初期値を削除 (DB側で設定するため)
+    val id: Long = 0,
+    val title: String, // タイトル（Not Null）
+    val content: String,
+    val createdAt: LocalDateTime,
+    val updatedAt: LocalDateTime // 更新日時
 )

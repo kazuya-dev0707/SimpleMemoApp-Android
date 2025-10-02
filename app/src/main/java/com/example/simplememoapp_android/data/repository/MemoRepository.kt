@@ -17,8 +17,10 @@ class MemoRepository(private val memoDao: MemoDao) {
     suspend fun insert(text: String): Result<Unit> {
         return try {
             val newMemo = Memo(
-                text = text,
-                createdAt = LocalDateTime.now()
+                title = text,
+                content = text,
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
             )
             memoDao.insertMemo(newMemo)
             Result.success(Unit)

@@ -11,11 +11,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -39,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import java.time.LocalDateTime
 import com.example.simplememoapp_android.data.model.Memo
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.state.MemoUiState
 import com.example.simplememoapp_android.ui.viewmodel.MemoViewModel
@@ -48,7 +52,8 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class) // ← Scaffoldなどで必要なら追加
 @Composable
-fun MemoScreen() {
+// ★ navControllerを引数に追加
+fun MemoListScreen(navController: NavController) {
 
     // ContextからApplicationインスタンスを取得し、Repositoryにアクセス
     val application = LocalContext.current.applicationContext as MemoApplication
@@ -87,6 +92,15 @@ fun MemoScreen() {
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(title = { Text("爆速メモアプリ") })
+        },
+        // ★ フローティングアクションボタンを追加
+        floatingActionButton = {
+            FloatingActionButton(onClick = {
+                // 新規作成画面へ遷移 (-1Lは新規作成を示すID)
+                navController.navigate("memo_detail/-1L")
+            }) {
+                Icon(Icons.Default.Add, contentDescription = "新しいメモ")
+            }
         }
     ) { paddingValues ->
         Column(
@@ -94,10 +108,6 @@ fun MemoScreen() {
                 .padding(paddingValues)
                 .fillMaxSize()
         ) {
-            MemoInputSection(onAddClick = { text ->
-                viewModel.addMemo(text)
-            })
-
             when (val state = uiState) {
                 // 「ローディング中」の命令が来たら
                 is MemoUiState.Loading -> {
@@ -119,6 +129,10 @@ fun MemoScreen() {
                         // ここで onDeleteClick の実処理 (ViewModelのメソッド呼び出し) を渡す
                         onDeleteClick = { memo ->
                             viewModel.deleteMemo(memo)
+                        },
+                        // ★ メモアイテムをタップしたときの処理を追加
+                        onMemoClick = { memo ->
+                            navController.navigate("memo_detail/${memo.id}")
                         }
                     )
                 }
@@ -136,9 +150,12 @@ fun MemoScreen() {
 @Composable
 private fun MemoItem(
     memo: Memo,
-    onDeleteClick: (Memo) -> Unit // ← これを追加！
+    onDeleteClick: (Memo) -> Unit,
+    onMemoClick: (Memo) -> Unit // ★ onMemoClickを追加
 ) {
     Card(
+        // ★ onClickを追加してカード全体をタップ可能にする
+        onClick = { onMemoClick(memo) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
@@ -153,7 +170,6 @@ private fun MemoItem(
                     .weight(1f) // テキストが残りのスペースを全て使う
                     .padding(16.dp)
             )
-            // ゴミ箱アイコンのボタンを追加
             IconButton(onClick = { onDeleteClick(memo) }) {
                 Icon(
                     imageVector = Icons.Default.Delete,
@@ -178,54 +194,59 @@ fun PreviewMemoItem() {
         ),
         onDeleteClick = { clickedMemo ->
             println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.content}")
+        },
+        onMemoClick = { clickedMemo ->
+            println("プレビュー: メモクリック: ${clickedMemo.content}")
         }
     )
 }
 
-// 部品2：メモ入力エリア
-@Composable
-private fun MemoInputSection(onAddClick: (String) -> Unit) {
-    // ① 入力されたテキストを覚えておくための「記憶」の箱
-    var text by remember { mutableStateOf("") }
+//TODO ここは削除？
+//// 部品2：メモ入力エリア
+//@Composable
+//private fun MemoInputSection(onAddClick: (String) -> Unit) {
+//    // ① 入力されたテキストを覚えておくための「記憶」の箱
+//    var text by remember { mutableStateOf("") }
+//
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(16.dp),
+//        verticalAlignment = Alignment.CenterVertically
+//    ) {
+//        // ② テキスト入力欄
+//        TextField(
+//            value = text,
+//            onValueChange = { text = it }, // 入力されるたびに記憶を更新
+//            modifier = Modifier.weight(1f),
+//            label = { Text("新しいメモ") }
+//        )
+//        Spacer(modifier = Modifier.width(8.dp))
+//        // ③ 追加ボタン
+//        Button(onClick = {
+//            onAddClick(text) // 親に「追加ボタンが押されたよ！」と通知
+//            text = ""        // 通知したら入力欄を空にする
+//        }) {
+//            Text("追加")
+//        }
+//    }
+//}
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // ② テキスト入力欄
-        TextField(
-            value = text,
-            onValueChange = { text = it }, // 入力されるたびに記憶を更新
-            modifier = Modifier.weight(1f),
-            label = { Text("新しいメモ") }
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        // ③ 追加ボタン
-        Button(onClick = {
-            onAddClick(text) // 親に「追加ボタンが押されたよ！」と通知
-            text = ""        // 通知したら入力欄を空にする
-        }) {
-            Text("追加")
-        }
-    }
-}
-
-// プレビュー用の魔法
-@Preview(showBackground = true)
-@Composable
-fun PreviewMemoInputSection() {
-    com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
-        MemoInputSection(onAddClick = {})
-    }
-}
+//// プレビュー用の魔法
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewMemoInputSection() {
+//    com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
+//        MemoInputSection(onAddClick = {})
+//    }
+//}
 
 // 部品3：メモのリスト全体
 @Composable
 private fun MemoListSection(
     memos: List<Memo>,
-    onDeleteClick: (Memo) -> Unit // onDeleteClick を引数に追加
+    onDeleteClick: (Memo) -> Unit,
+    onMemoClick: (Memo) -> Unit // ★ onMemoClickを追加
 ) {
     // ① 大量のアイテムを効率的に表示するためのリスト
     LazyColumn(
@@ -235,7 +256,8 @@ private fun MemoListSection(
         items(memos) { memo ->
             MemoItem(
                 memo = memo,
-                onDeleteClick = onDeleteClick // MemoItemにコールバックを渡す
+                onDeleteClick = onDeleteClick,
+                onMemoClick = onMemoClick // ★ onMemoClickを渡す
             ) 
         }
     }
@@ -256,7 +278,19 @@ fun PreviewMemoListSection() {
             memos = dummyMemos,
             onDeleteClick = { memo ->
                 println("プレビュー (List): メモ削除ボタンクリック: ${memo.content}")
+            },
+            onMemoClick = { memo ->
+                println("プレビュー (List): メモクリック: ${memo.content}")
             }
         )
     }
 }
+
+// プレビュー用のコード
+@Preview(showBackground = true)
+@Composable
+fun MemoListScreenPreview() {
+    // Previewでは実際のナビゲーションは不要なので、ダミーのNavControllerを渡す
+    MemoListScreen(navController = rememberNavController())
+}
+

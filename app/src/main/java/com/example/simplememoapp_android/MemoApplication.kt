@@ -16,6 +16,8 @@ class MemoApplication : Application() {
             "memo_database"
         )
             .addMigrations(MIGRATION_1_2)
+            // ★★★マイグレーションに失敗した場合、データベースを破棄して再生成する★★★
+            .fallbackToDestructiveMigration()
             .build()
     }
 

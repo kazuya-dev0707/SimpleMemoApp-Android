@@ -24,7 +24,7 @@ sealed interface UiEvent {
 class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
 
     // Repositoryから流れてくる`Flow<List<Memo>>`を、UIが表示すべき`StateFlow<MemoUiState>`に変換する
-    val uiState: StateFlow<MemoUiState> = repository.allMemos
+    val uiState: StateFlow<MemoUiState> = repository.getMemos()
         .map { memos ->
             if (memos.isEmpty()) {
                 MemoUiState.Empty
@@ -44,24 +44,24 @@ class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-
-    /**
-     * 新しいメモを追加します。
-     * Repositoryからの処理結果（成功・失敗）を受け取り、UIに反映します。
-     * @param text 追加するメモの本文。
-     */
-    fun addMemo(text: String) {
-        if (text.isBlank()) return
-
-        viewModelScope.launch {
-            repository.insert(text.trim())
-                .onFailure { e ->
-                    // ▼▼▼ 失敗時にイベントを発行するよう変更 ▼▼▼
-                    _eventFlow.emit(UiEvent.ShowSnackbar("メモの保存に失敗しました"))
-                    println("メモの挿入に失敗しました: ${e.message}")
-                }
-        }
-    }
+//TODO 一覧画面では呼び出し不要、詳細画面で必要？
+//    /**
+//     * 新しいメモを追加します。
+//     * Repositoryからの処理結果（成功・失敗）を受け取り、UIに反映します。
+//     * @param text 追加するメモの本文。
+//     */
+//    fun addMemo(text: String) {
+//        if (text.isBlank()) return
+//
+//        viewModelScope.launch {
+//            repository.addMemo(text.trim())
+//                .onFailure { e ->
+//                    // ▼▼▼ 失敗時にイベントを発行するよう変更 ▼▼▼
+//                    _eventFlow.emit(UiEvent.ShowSnackbar("メモの保存に失敗しました"))
+//                    println("メモの挿入に失敗しました: ${e.message}")
+//                }
+//        }
+//    }
 
     /**
      * 指定されたメモを削除するようRepositoryに依頼します。
@@ -70,13 +70,12 @@ class MemoViewModel(private val repository: MemoRepository) : ViewModel() {
      */
     fun deleteMemo(memo: Memo) { 
         viewModelScope.launch {
-            repository.delete(memo)
-                .onFailure { e -> // ← 失敗時の処理を追加
-                    // ▼▼▼ 失敗時にイベントを発行するよう変更 ▼▼▼
-                    _eventFlow.emit(UiEvent.ShowSnackbar("メモの削除に失敗しました"))
-                    println("メモの削除に失敗しました: ${e.message}")
+            repository.deleteMemo(memo)
+            //TODO エラーハンドリング検討、修正
+//                .onFailure { e -> // ← 失敗時の処理を追加
+//                    // ▼▼▼ 失敗時にイベントを発行するよう変更 ▼▼▼
+//                    _eventFlow.emit(UiEvent.ShowSnackbar("メモの削除に失敗しました"))
+//                    println("メモの削除に失敗しました: ${e.message}")
                 }
         }
     }
-    
-}

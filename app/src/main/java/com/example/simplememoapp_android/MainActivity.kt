@@ -29,32 +29,29 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // ★★★ ここから変更 ★★★
-                    // 1. ナビゲーションの司令塔(NavController)を作成
                     val navController = rememberNavController()
-                    // 2. AppNavHostを呼び出し、司令塔を渡す
                     AppNavHost(navController = navController)
-                    // ★★★ ここまで変更 ★★★
                 }
             }
         }
     }
 }
 
-//TODO AppNavHostはMainActivityの外に定義する方が一般的ですが、中でも問題ありません。
 @Composable
 fun AppNavHost(navController: NavHostController) {
     NavHost(navController = navController, startDestination = "memo_list") {
         composable("memo_list") {
-            // MemoListScreenにnavControllerを渡す
             MemoListScreen(navController = navController)
         }
         composable(
             route = "memo_detail/{memoId}",
             arguments = listOf(navArgument("memoId") { type = NavType.LongType })
         ) { backStackEntry ->
-            // MemoDetailScreenにnavControllerを渡す
-            MemoDetailScreen(navController = navController)
+            // ★★★ 変更点: backStackEntryをMemoDetailScreenに渡す ★★★
+            MemoDetailScreen(
+                navController = navController,
+                backStackEntry = backStackEntry
+            )
         }
     }
 }

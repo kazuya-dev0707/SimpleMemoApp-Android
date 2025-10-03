@@ -3,17 +3,14 @@ package com.example.simplememoapp_android.ui.screen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,15 +21,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -147,100 +141,6 @@ fun MemoListScreen(navController: NavController) {
     }
 }
 
-@Composable
-private fun MemoItem(
-    memo: Memo,
-    onDeleteClick: (Memo) -> Unit,
-    onMemoClick: (Memo) -> Unit // ★ onMemoClickを追加
-) {
-    Card(
-        // ★ onClickを追加してカード全体をタップ可能にする
-        onClick = { onMemoClick(memo) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-    ) {
-        Row( // Cardの中身をRowにして、テキストとボタンを横並びにする
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = memo.content,
-                modifier = Modifier
-                    .weight(1f) // テキストが残りのスペースを全て使う
-                    .padding(16.dp)
-            )
-            IconButton(onClick = { onDeleteClick(memo) }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "メモを削除"
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMemoItem() {
-    // createdAt をダミーデータに追加
-    MemoItem(
-        memo = Memo(
-            id = 1, // プレビュー用に適当なID
-            title = "プレビュー用のメモ",
-            content = "これはプレビュー用のメモです！",
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now()
-        ),
-        onDeleteClick = { clickedMemo ->
-            println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.content}")
-        },
-        onMemoClick = { clickedMemo ->
-            println("プレビュー: メモクリック: ${clickedMemo.content}")
-        }
-    )
-}
-
-//TODO ここは削除？
-//// 部品2：メモ入力エリア
-//@Composable
-//private fun MemoInputSection(onAddClick: (String) -> Unit) {
-//    // ① 入力されたテキストを覚えておくための「記憶」の箱
-//    var text by remember { mutableStateOf("") }
-//
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(16.dp),
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        // ② テキスト入力欄
-//        TextField(
-//            value = text,
-//            onValueChange = { text = it }, // 入力されるたびに記憶を更新
-//            modifier = Modifier.weight(1f),
-//            label = { Text("新しいメモ") }
-//        )
-//        Spacer(modifier = Modifier.width(8.dp))
-//        // ③ 追加ボタン
-//        Button(onClick = {
-//            onAddClick(text) // 親に「追加ボタンが押されたよ！」と通知
-//            text = ""        // 通知したら入力欄を空にする
-//        }) {
-//            Text("追加")
-//        }
-//    }
-//}
-
-//// プレビュー用の魔法
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewMemoInputSection() {
-//    com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
-//        MemoInputSection(onAddClick = {})
-//    }
-//}
-
 // 部品3：メモのリスト全体
 @Composable
 private fun MemoListSection(
@@ -277,13 +177,67 @@ fun PreviewMemoListSection() {
         MemoListSection(
             memos = dummyMemos,
             onDeleteClick = { memo ->
-                println("プレビュー (List): メモ削除ボタンクリック: ${memo.content}")
+                println("プレビュー (List): メモ削除ボタンクリック: ${memo.title}")
             },
             onMemoClick = { memo ->
-                println("プレビュー (List): メモクリック: ${memo.content}")
+                println("プレビュー (List): メモクリック: ${memo.title}")
             }
         )
     }
+}
+
+@Composable
+private fun MemoItem(
+    memo: Memo,
+    onDeleteClick: (Memo) -> Unit,
+    onMemoClick: (Memo) -> Unit // ★ onMemoClickを追加
+) {
+    Card(
+        // ★ onClickを追加してカード全体をタップ可能にする
+        onClick = { onMemoClick(memo) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        Row( // Cardの中身をRowにして、テキストとボタンを横並びにする
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = memo.title,
+                modifier = Modifier
+                    .weight(1f) // テキストが残りのスペースを全て使う
+                    .padding(16.dp)
+            )
+            IconButton(onClick = { onDeleteClick(memo) }) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "メモを削除"
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMemoItem() {
+    // createdAt をダミーデータに追加
+    MemoItem(
+        memo = Memo(
+            id = 1, // プレビュー用に適当なID
+            title = "プレビュー用のメモ",
+            content = "これはプレビュー用のメモです！",
+            createdAt = LocalDateTime.now(),
+            updatedAt = LocalDateTime.now()
+        ),
+        onDeleteClick = { clickedMemo ->
+            println("プレビュー: メモ削除ボタンクリック: ${clickedMemo.title}")
+        },
+        onMemoClick = { clickedMemo ->
+            println("プレビュー: メモクリック: ${clickedMemo.title}")
+        }
+    )
 }
 
 // プレビュー用のコード

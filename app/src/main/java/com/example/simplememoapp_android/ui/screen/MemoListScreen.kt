@@ -45,8 +45,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.state.MemoUiState
-import com.example.simplememoapp_android.ui.viewmodel.MemoViewModel
-import com.example.simplememoapp_android.ui.viewmodel.MemoViewModelFactory
+import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModel
+import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModelFactory
 import com.example.simplememoapp_android.ui.viewmodel.UiEvent
 import kotlinx.coroutines.flow.collectLatest
 
@@ -60,8 +60,8 @@ fun MemoListScreen(navController: NavController) {
     val repository = application.repository
 
     // カスタムファクトリを使ってViewModelを生成
-    val viewModel: MemoViewModel = viewModel(
-        factory = MemoViewModelFactory(repository)
+    val viewModel: MemoListViewModel = viewModel(
+        factory = MemoListViewModelFactory(repository)
     )
 
     val uiState by viewModel.uiState.collectAsState()

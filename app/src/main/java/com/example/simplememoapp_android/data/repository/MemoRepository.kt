@@ -1,8 +1,16 @@
 package com.example.simplememoapp_android.data.repository
 
+import android.content.ContentResolver
+import android.net.Uri
 import com.example.simplememoapp_android.data.local.dao.MemoDao
 import com.example.simplememoapp_android.data.model.Memo
+import com.example.simplememoapp_android.data.model.SerializableMemo
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class MemoRepository(private val memoDao: MemoDao) {
 
@@ -25,5 +33,23 @@ class MemoRepository(private val memoDao: MemoDao) {
     // メモを削除する
     suspend fun deleteMemo(memo: Memo) {
         memoDao.deleteMemo(memo)
+    }
+
+    suspend fun exportMemosToFile(uri: Uri, contentResolver: ContentResolver) {
+        withContext(Dispatchers.IO) {
+            val memos = memoDao.getAllMemos().first()
+            val serializableMemos = memos.map { memo ->
+                SerializableMemo(
+                    title = memo.title,
+                    content = memo.content,
+                    createdAt = memo.createdAt.toString(),
+                    updatedAt = memo.updatedAt.toString()
+                )
+            }
+            val jsonString = Json.encodeToString(serializableMemos)
+            contentResolver.openOutputStream(uri)?.use { outputStream ->
+                outputStream.writer().use { it.write(jsonString) }
+            }
+        }
     }
 }

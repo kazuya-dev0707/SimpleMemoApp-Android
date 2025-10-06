@@ -3,6 +3,7 @@ package com.example.simplememoapp_android
 import android.app.Application
 import androidx.room.Room
 import com.example.simplememoapp_android.data.local.AppDatabase
+import com.example.simplememoapp_android.data.local.AppDatabase.Companion.MIGRATION_1_2
 import com.example.simplememoapp_android.data.local.Converters
 import com.example.simplememoapp_android.data.repository.MemoRepository
 
@@ -14,8 +15,9 @@ class MemoApplication : Application() {
             AppDatabase::class.java,
             "memo_database"
         )
-            // TypeConverterはRoom 2.6.0以降、自動適用されるため明示的な追加は不要な場合がある
-            // .addTypeConverter(Converters::class.java)
+            .addMigrations(MIGRATION_1_2)
+            // ★★★マイグレーションに失敗した場合、データベースを破棄して再生成する★★★
+            .fallbackToDestructiveMigration()
             .build()
     }
 

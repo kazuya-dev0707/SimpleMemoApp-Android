@@ -1,5 +1,8 @@
 package com.example.simplememoapp_android.ui.screen
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +14,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -26,7 +32,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,9 +52,8 @@ import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModelFactory
 import com.example.simplememoapp_android.ui.viewmodel.UiEvent
 import kotlinx.coroutines.flow.collectLatest
 
-@OptIn(ExperimentalMaterial3Api::class) // ← Scaffoldなどで必要なら追加
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// ★ navControllerを引数に追加
 fun MemoListScreen(navController: NavController) {
 
     // ContextからApplicationインスタンスを取得し、Repositoryにアクセス
@@ -81,11 +88,43 @@ fun MemoListScreen(navController: NavController) {
         }
     }
 
+    val context = LocalContext.current
+
+    // ★ファイル作成ランチャーを登録
+    val createFileLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+        onResult = { uri: Uri? ->
+            uri?.let {
+                viewModel.exportMemos(it, context.contentResolver)
+            }
+        }
+    )
+
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            TopAppBar(title = { Text("爆速メモアプリ") })
+            TopAppBar(
+                title = { Text("爆速メモアプリ") },
+                actions = {
+                    var menuExpanded by remember { mutableStateOf(false) }
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "メニュー")
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("全件エクスポート") },
+                            onClick = {
+                                menuExpanded = false
+                                createFileLauncher.launch("memos.json")
+                            }
+                        )
+                    }
+                },
+            )
         },
         // ★ フローティングアクションボタンを追加
         floatingActionButton = {
@@ -158,7 +197,7 @@ private fun MemoListSection(
                 memo = memo,
                 onDeleteClick = onDeleteClick,
                 onMemoClick = onMemoClick // ★ onMemoClickを渡す
-            ) 
+            )
         }
     }
 }
@@ -170,9 +209,27 @@ fun PreviewMemoListSection() {
     com.example.simplememoapp_android.ui.theme.SimpleMemoAppAndroidTheme {
         // ダミーのデータを用意して、リストがどう見えるか確認する
         val dummyMemos = listOf(
-            Memo(id = 1, title = "キックボクシング", content = "キックボクシングに行く", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now()),
-            Memo(id = 2, title = "タリーズ", content = "タリーズで実装する", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now()),
-            Memo(id = 3, title = "筋トレ", content = "夜はジムで筋トレ", createdAt = LocalDateTime.now(), updatedAt = LocalDateTime.now())
+            Memo(
+                id = 1,
+                title = "キックボクシング",
+                content = "キックボクシングに行く",
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            ),
+            Memo(
+                id = 2,
+                title = "タリーズ",
+                content = "タリーズで実装する",
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            ),
+            Memo(
+                id = 3,
+                title = "筋トレ",
+                content = "夜はジムで筋トレ",
+                createdAt = LocalDateTime.now(),
+                updatedAt = LocalDateTime.now()
+            )
         )
         MemoListSection(
             memos = dummyMemos,

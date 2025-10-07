@@ -7,9 +7,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MemoResponse(
     val id: String,
-    val createdAt: String,
+    val createdAt: Long,
     val title: String,
     val content: String,
-    val updatedAt: String,
+    val updateAt: Long,
     val userId: String
 )

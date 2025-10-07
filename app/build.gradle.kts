@@ -63,6 +63,11 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // (ComposeでHilt ViewModelを扱うため)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")     // Retrofit (本体)
+    // kotlinx.serialization と Retrofit を連携させるためのコンバータ
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+    // 通信の詳細なログを見るためのインターセプタ (デバッグに超便利)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

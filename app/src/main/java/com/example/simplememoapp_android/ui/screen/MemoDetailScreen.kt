@@ -26,9 +26,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun MemoDetailScreen(
     navController: NavController,
-    backStackEntry: NavBackStackEntry
+    // ★ ここから backStackEntry が削除されている
 ) {
-    val application = LocalContext.current.applicationContext as MemoApplication
     // ★★★ ViewModelの取得が、この一行だけで完了！ ★★★
     val viewModel: MemoDetailViewModel = hiltViewModel()
 

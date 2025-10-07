@@ -1,4 +1,4 @@
-package com.example.simplememoapp_android.ui.navigation
+package com.example.simplememoapp_android.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
@@ -18,12 +18,9 @@ fun AppNavHost(navController: NavHostController) {
         composable(
             route = "memo_detail/{memoId}",
             arguments = listOf(navArgument("memoId") { type = NavType.LongType })
-        ) { backStackEntry ->
-            // ★★★ 変更点: backStackEntryをMemoDetailScreenに渡す ★★★
-            MemoDetailScreen(
-                navController = navController,
-                backStackEntry = backStackEntry
-            )
+        ) { // ★ backStackEntry を受け取る必要がなくなる
+            // ★ backStackEntry を渡す必要がなくなり、呼び出しがシンプルになる
+            MemoDetailScreen(navController = navController)
         }
     }
 }

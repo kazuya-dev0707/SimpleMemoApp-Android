@@ -6,14 +6,17 @@ import androidx.lifecycle.viewModelScope
 import com.example.simplememoapp_android.data.model.Memo
 import com.example.simplememoapp_android.data.repository.MemoRepository
 import com.example.simplememoapp_android.ui.state.MemoDetailUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-class MemoDetailViewModel(
+@HiltViewModel
+class MemoDetailViewModel @Inject constructor(
     private val repository: MemoRepository,
     savedStateHandle: SavedStateHandle // NavControllerから引数を受け取るための仕組み
 ) : ViewModel() {

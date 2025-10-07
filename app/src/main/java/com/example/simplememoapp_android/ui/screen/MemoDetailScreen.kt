@@ -18,7 +18,6 @@ import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.screen.parts.MemoDetailContent
 import com.example.simplememoapp_android.ui.screen.parts.MemoDetailTopAppBar
 import com.example.simplememoapp_android.ui.viewmodel.MemoDetailViewModel
-import com.example.simplememoapp_android.ui.viewmodel.MemoDetailViewModelFactory
 import com.example.simplememoapp_android.ui.viewmodel.UiEvent
 import kotlinx.coroutines.flow.collectLatest
 

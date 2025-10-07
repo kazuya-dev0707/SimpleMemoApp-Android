@@ -40,30 +40,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import java.time.LocalDateTime
 import com.example.simplememoapp_android.data.model.Memo
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.state.MemoUiState
 import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModel
-import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModelFactory
 import com.example.simplememoapp_android.ui.viewmodel.UiEvent
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemoListScreen(navController: NavController) {
-
-    // ContextからApplicationインスタンスを取得し、Repositoryにアクセス
-    val application = LocalContext.current.applicationContext as MemoApplication
-    val repository = application.repository
-
-    // カスタムファクトリを使ってViewModelを生成
-    val viewModel: MemoListViewModel = viewModel(
-        factory = MemoListViewModelFactory(repository)
-    )
+    // ★★★ ViewModelの取得が、この一行だけで完了！ ★★★
+    val viewModel: MemoListViewModel = hiltViewModel()
 
     val uiState by viewModel.uiState.collectAsState()
 

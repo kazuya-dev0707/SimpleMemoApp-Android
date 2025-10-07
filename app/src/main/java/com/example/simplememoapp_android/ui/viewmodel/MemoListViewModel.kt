@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.simplememoapp_android.data.model.Memo
 import com.example.simplememoapp_android.data.repository.MemoRepository
 import com.example.simplememoapp_android.ui.state.MemoUiState
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,12 +16,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed interface UiEvent {
     data class ShowSnackbar(val message: String) : UiEvent
 }
 
-class MemoListViewModel(private val repository: MemoRepository) : ViewModel() {
+@HiltViewModel // ★アノテーションを追加
+class MemoListViewModel @Inject constructor(private val repository: MemoRepository) : ViewModel() {
 
     val uiState: StateFlow<MemoUiState> = repository.getMemos()
         .map { memos ->

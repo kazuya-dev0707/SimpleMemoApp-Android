@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.ksp)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22" // ★追加
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    id("com.google.dagger.hilt.android") version "2.51.1"
 }
 
 android {
@@ -57,6 +58,9 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation("androidx.navigation:navigation-compose:2.7.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("com.google.dagger:hilt-android:2.51.1")         // (Hilt本体)
+    ksp("com.google.dagger:hilt-compiler:2.51.1")                    // (コード生成ツール)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0") // (ComposeでHilt ViewModelを扱うため)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     testImplementation(libs.junit)

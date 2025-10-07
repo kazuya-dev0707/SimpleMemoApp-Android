@@ -6,7 +6,9 @@ import com.example.simplememoapp_android.data.local.AppDatabase
 import com.example.simplememoapp_android.data.local.AppDatabase.Companion.MIGRATION_1_2
 import com.example.simplememoapp_android.data.local.Converters
 import com.example.simplememoapp_android.data.repository.MemoRepository
+import dagger.hilt.android.HiltAndroidApp
 
+@HiltAndroidApp
 class MemoApplication : Application() {
     // アプリ全体で共有されるAppDatabaseインスタンス
     private val database: AppDatabase by lazy {

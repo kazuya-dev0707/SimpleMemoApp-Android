@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -18,6 +19,7 @@ import com.example.simplememoapp_android.MemoApplication
 import com.example.simplememoapp_android.ui.screen.parts.MemoDetailContent
 import com.example.simplememoapp_android.ui.screen.parts.MemoDetailTopAppBar
 import com.example.simplememoapp_android.ui.viewmodel.MemoDetailViewModel
+import com.example.simplememoapp_android.ui.viewmodel.MemoListViewModel
 import com.example.simplememoapp_android.ui.viewmodel.UiEvent
 import kotlinx.coroutines.flow.collectLatest
 
@@ -27,16 +29,8 @@ fun MemoDetailScreen(
     backStackEntry: NavBackStackEntry
 ) {
     val application = LocalContext.current.applicationContext as MemoApplication
-
-    // ★★★ ここを修正 ★★★
-    // ViewModelFactoryに、引数(backStackEntry.arguments)も渡す
-    val viewModel: MemoDetailViewModel = viewModel(
-        factory = MemoDetailViewModelFactory(
-            repository = application.repository,
-            owner = backStackEntry,
-            defaultArgs = backStackEntry.arguments
-        )
-    )
+    // ★★★ ViewModelの取得が、この一行だけで完了！ ★★★
+    val viewModel: MemoDetailViewModel = hiltViewModel()
 
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }

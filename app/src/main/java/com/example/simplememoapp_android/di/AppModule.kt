@@ -1,6 +1,10 @@
 package com.example.simplememoapp_android.di
 
 import android.app.Application
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.simplememoapp_android.data.local.AppDatabase
 import com.example.simplememoapp_android.data.local.dao.MemoDao
@@ -17,6 +21,8 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import javax.inject.Singleton
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "session")
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -75,6 +81,12 @@ object AppModule {
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDataStore(app: Application): DataStore<Preferences> {
+        return app.dataStore
     }
 
 }

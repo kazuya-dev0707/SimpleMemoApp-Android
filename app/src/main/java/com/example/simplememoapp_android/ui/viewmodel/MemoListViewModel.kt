@@ -25,13 +25,9 @@ sealed interface UiEvent {
 @HiltViewModel // ★アノテーションを追加
 class MemoListViewModel @Inject constructor(private val repository: MemoRepository) : ViewModel() {
 
-    val uiState: StateFlow<MemoUiState> = repository.getMemos()
+    val uiState: StateFlow<MemoUiState> = repository.memos
         .map { memos ->
-            if (memos.isEmpty()) {
-                MemoUiState.Empty
-            } else {
-                MemoUiState.Success(memos)
-            }
+            if (memos.isEmpty()) MemoUiState.Empty else MemoUiState.Success(memos)
         }
         .stateIn(
             scope = viewModelScope,
@@ -44,30 +40,37 @@ class MemoListViewModel @Inject constructor(private val repository: MemoReposito
 
     private var exportJob: Job? = null
 
-    fun exportMemos(uri: Uri, contentResolver: ContentResolver) {
-        if (exportJob?.isActive == true) return
-
-        exportJob = viewModelScope.launch {
-            try {
-                // TODO: ローディング表示を開始する
-                repository.exportMemosToFile(uri, contentResolver)
-                _eventFlow.emit(UiEvent.ShowSnackbar("メモのエクスポートが完了しました。"))
-            } catch (e: Exception) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("エクスポートに失敗しました: ${e.message}"))
-            } finally {
-                // TODO: ローディング表示を解除する
-            }
-        }
-    }
-
-    fun deleteMemo(memo: Memo) {
+    init {
+        // 画面が表示されるたびに、裏側でサーバーとの同期を開始する
         viewModelScope.launch {
-            try {
-                repository.deleteMemo(memo)
-                _eventFlow.emit(UiEvent.ShowSnackbar("メモを削除しました"))
-            } catch (e: Exception) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("メモの削除に失敗しました"))
+            repository.refreshMemos()
+        }
+    }
+
+        fun exportMemos(uri: Uri, contentResolver: ContentResolver) {
+            if (exportJob?.isActive == true) return
+
+            exportJob = viewModelScope.launch {
+                try {
+                    // TODO: ローディング表示を開始する
+                    repository.exportMemosToFile(uri, contentResolver)
+                    _eventFlow.emit(UiEvent.ShowSnackbar("メモのエクスポートが完了しました。"))
+                } catch (e: Exception) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("エクスポートに失敗しました: ${e.message}"))
+                } finally {
+                    // TODO: ローディング表示を解除する
+                }
+            }
+        }
+
+        fun deleteMemo(memo: Memo) {
+            viewModelScope.launch {
+                try {
+                    repository.deleteMemo(memo)
+                    _eventFlow.emit(UiEvent.ShowSnackbar("メモを削除しました"))
+                } catch (e: Exception) {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("メモの削除に失敗しました"))
+                }
             }
         }
     }
-}

@@ -7,8 +7,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import com.example.simplememoapp_android.data.local.AppDatabase
+import com.example.simplememoapp_android.data.local.AppDatabase.Companion.MIGRATION_2_3
 import com.example.simplememoapp_android.data.local.dao.MemoDao
-import com.example.simplememoapp_android.data.repository.MemoRepository
 import com.example.simplememoapp_android.network.ApiService
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -36,7 +36,7 @@ object AppModule {
             AppDatabase::class.java,
             "memo_database"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, MIGRATION_2_3)
             .build()
     }
 
@@ -46,13 +46,10 @@ object AppModule {
         return db.memoDao()
     }
 
-    @Provides
-    @Singleton
-    fun provideMemoRepository(dao: MemoDao): MemoRepository {
-        return MemoRepository(dao)
-    }
+    // この関数は不要なので削除しました。
+    // MemoRepositoryには @Inject constructor が付いているため、
+    // Hiltが自動でインスタンスの生成方法を見つけてくれます。
 
-    // ★★★ 以下を追記 ★★★
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {

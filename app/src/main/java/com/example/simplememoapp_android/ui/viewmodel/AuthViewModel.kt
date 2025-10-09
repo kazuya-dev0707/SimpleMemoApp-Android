@@ -19,7 +19,7 @@ data class AuthUiState(
 )
 
 sealed interface AuthUiEvent {
-    data class NavigateTo(val route: String) : AuthUiEvent
+    data class NavigateTo(val route: String) : AuthUiEvent, UiEvent
     data class ShowSnackbar(val message: String) : AuthUiEvent
 }
 

@@ -40,6 +40,10 @@ fun MemoDetailScreen(
                 is UiEvent.ShowSnackbar -> {
                     snackbarHostState.showSnackbar(message = event.message)
                 }
+                // ★★★ このelse分岐を追加して、when式を網羅的にする ★★★
+                else -> {
+                    // この画面ではSnackbar以外のイベントは処理しない
+                }
             }
         }
     }

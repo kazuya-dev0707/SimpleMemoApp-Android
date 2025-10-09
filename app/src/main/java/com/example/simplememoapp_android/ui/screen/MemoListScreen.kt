@@ -75,6 +75,9 @@ fun MemoListScreen(navController: NavController) {
                         message = event.message
                     )
                 }
+                else -> {
+                    // MemoListScreenでは他のイベントは処理しない
+                }
             }
         }
     }
@@ -151,12 +154,12 @@ fun MemoListScreen(navController: NavController) {
                     MemoListSection(
                         memos = state.memos,
                         // ここで onDeleteClick の実処理 (ViewModelのメソッド呼び出し) を渡す
-                        onDeleteClick = { memo ->
-                            viewModel.deleteMemo(memo)
+                        onDeleteClick = {
+                            viewModel.deleteMemo(it)
                         },
                         // ★ メモアイテムをタップしたときの処理を追加
                         onMemoClick = { memo ->
-                            navController.navigate("memo_detail/${memo.id}")
+                                navController.navigate("memo_detail/${memo.id}")
                         }
                     )
                 }
@@ -202,6 +205,8 @@ fun PreviewMemoListSection() {
         val dummyMemos = listOf(
             Memo(
                 id = 1,
+                serverId = "server1",
+                userId = "user1",
                 title = "キックボクシング",
                 content = "キックボクシングに行く",
                 createdAt = LocalDateTime.now(),
@@ -209,6 +214,8 @@ fun PreviewMemoListSection() {
             ),
             Memo(
                 id = 2,
+                serverId = "server2",
+                userId = "user1",
                 title = "タリーズ",
                 content = "タリーズで実装する",
                 createdAt = LocalDateTime.now(),
@@ -216,6 +223,8 @@ fun PreviewMemoListSection() {
             ),
             Memo(
                 id = 3,
+                serverId = "server3",
+                userId = "user1",
                 title = "筋トレ",
                 content = "夜はジムで筋トレ",
                 createdAt = LocalDateTime.now(),
@@ -274,6 +283,8 @@ fun PreviewMemoItem() {
     MemoItem(
         memo = Memo(
             id = 1, // プレビュー用に適当なID
+            serverId = "server1",
+            userId = "user1",
             title = "プレビュー用のメモ",
             content = "これはプレビュー用のメモです！",
             createdAt = LocalDateTime.now(),
@@ -295,4 +306,3 @@ fun MemoListScreenPreview() {
     // Previewでは実際のナビゲーションは不要なので、ダミーのNavControllerを渡す
     MemoListScreen(navController = rememberNavController())
 }
-

@@ -3,21 +3,25 @@ package com.example.simplememoapp_android.data.local.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.simplememoapp_android.data.model.Memo
 import kotlinx.coroutines.flow.Flow
-
+// data/local/dao/MemoDao.kt (修正後)
 @Dao
 interface MemoDao {
-    @Query("SELECT * FROM memos ORDER BY updatedAt DESC") // ソート順を更新日時に変更
-    fun getAllMemos(): Flow<List<Memo>>
+    @Query("SELECT * FROM memos WHERE userId = :userId ORDER BY updatedAt DESC")
+    fun getMemosByUserId(userId: String): Flow<List<Memo>>
 
-    @Query("SELECT * FROM memos WHERE id = :id")
-    fun getMemoById(id: Long): Flow<Memo>
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(memos: List<Memo>)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMemo(memo: Memo)
+
+    @Query("DELETE FROM memos WHERE userId = :userId")
+    suspend fun deleteAllByUserId(userId: String)
 
     @Update
     suspend fun updateMemo(memo: Memo)

@@ -9,7 +9,7 @@ import com.example.simplememoapp_android.data.local.dao.MemoDao
 import com.example.simplememoapp_android.data.model.Memo
 import java.time.LocalDateTime
 
-@Database(entities = [Memo::class], version = 2, exportSchema = false)
+@Database(entities = [Memo::class], version = 3, exportSchema = false) // ★ versionを3に更新
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun memoDao(): MemoDao
@@ -45,6 +45,12 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("ALTER TABLE memos_new RENAME TO memos")
             }
         }
-        // ★★★ ここまで修正 ★★★
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE memos ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE memos ADD COLUMN serverId TEXT NOT NULL DEFAULT ''") // ★ NOT NULLに変更
+            }
+        }
     }
 }

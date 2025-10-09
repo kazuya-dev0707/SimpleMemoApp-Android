@@ -11,8 +11,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,7 +28,8 @@ class MemoDetailViewModel @Inject constructor(
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    private var memoId: Long = -1L
+    private val memoId: Long
+    private var currentMemo: Memo? = null // ★更新対象のメモを保持する変数
 
     init {
         // savedStateHandleから "memoId" をキーにして値を取り出す
@@ -36,27 +38,30 @@ class MemoDetailViewModel @Inject constructor(
         if (memoId != -1L) {
             // 編集モード：DBからメモを取得
             viewModelScope.launch {
-                repository.getMemoById(memoId).collect { memo ->
-                    _uiState.value = _uiState.value.copy(
-                        title = memo.title,
-                        content = memo.content,
-                        createdAt = memo.createdAt,
-                        isLoading = false
-                    )
+                repository.memos.first().find { it.id == memoId }?.let { memo ->
+                    currentMemo = memo // ★取得したメモを更新処理のために保持しておく
+                    _uiState.update {
+                        it.copy(
+                            title = memo.title,
+                            content = memo.content,
+                            createdAt = memo.createdAt,
+                            isLoading = false
+                        )
+                    }
                 }
             }
         } else {
             // 新規作成モード
-            _uiState.value = MemoDetailUiState(isLoading = false)
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 
     fun onTitleChange(newTitle: String) {
-        _uiState.value = _uiState.value.copy(title = newTitle, isSavable = true)
+        _uiState.update { it.copy(title = newTitle, isSavable = true) }
     }
 
     fun onContentChange(newContent: String) {
-        _uiState.value = _uiState.value.copy(content = newContent, isSavable = true)
+        _uiState.update { it.copy(content = newContent, isSavable = true) }
     }
 
     fun saveMemo() {
@@ -69,26 +74,26 @@ class MemoDetailViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            val now = LocalDateTime.now()
-            val createdAt = uiState.value.createdAt ?: now
-
-            val memoToSave = Memo(
-                id = if (memoId != -1L) memoId else 0,
-                title = uiState.value.title.trim(),
-                content = uiState.value.content.trim(),
-                createdAt = createdAt,
-                updatedAt = now
-            )
+            val title = uiState.value.title.trim()
+            val content = uiState.value.content.trim()
 
             try {
+                _uiState.update { it.copy(isLoading = true) }
                 if (memoId != -1L) {
-                    repository.updateMemo(memoToSave)
+                    // 更新処理
+                    currentMemo?.let {
+                        repository.updateMemo(it, title, content)
+                    }
                 } else {
-                    repository.addMemo(memoToSave)
+                    // 新規作成処理
+                    repository.addMemo(title, content)
                 }
-                _uiState.value = _uiState.value.copy(isFinished = true) // 保存完了フラグを立てる
+                // ★★★ UIが待っているisFinishedフラグをtrueに更新する ★★★
+                _uiState.update { it.copy(isFinished = true) }
             } catch (e: Exception) {
-                _eventFlow.emit(UiEvent.ShowSnackbar("保存に失敗しました"))
+                _eventFlow.emit(UiEvent.ShowSnackbar("保存に失敗しました: ${e.message}"))
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

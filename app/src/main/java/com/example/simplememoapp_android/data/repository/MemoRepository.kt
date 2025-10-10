@@ -54,13 +54,25 @@ class MemoRepository @Inject constructor(
     }
 
     suspend fun updateMemo(memo: Memo, title: String, content: String) {
+        val serverId = memo.serverId ?: return // 更新対象のメモは必ずサーバーIDを持っている
+
         val request = MemoRequest(title, content, memo.userId)
-        val updatedMemoFromApi = apiService.updateMemo(memo.userId, memo.serverId, request)
-        memoDao.updateMemo(updatedMemoFromApi.toEntity())
+        // 1. APIを呼び出してサーバーのデータを更新
+        val updatedMemoFromApi = apiService.updateMemo(memo.userId, serverId, request)
+
+        // 2. ★★★ここからが修正箇所★★★
+        //    APIからのレスポンスをEntityに変換し、ローカルDBの主キー(id)を維持する
+        val updatedEntity = updatedMemoFromApi.toEntity().copy(
+            id = memo.id
+        )
+
+        // 3. 正しい主キーを持った最新のデータでローカルDBを更新
+        memoDao.updateMemo(updatedEntity)
     }
 
     suspend fun deleteMemo(memo: Memo) {
-        apiService.deleteMemo(memo.userId, memo.serverId)
+        val serverId = memo.serverId ?: return // 削除対象のメモは必ずサーバーIDを持っている
+        apiService.deleteMemo(memo.userId, serverId)
         memoDao.deleteMemo(memo)
     }
 

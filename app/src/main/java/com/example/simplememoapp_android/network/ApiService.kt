@@ -14,10 +14,10 @@ import retrofit2.http.Query
 
 interface ApiService {
     // --- User Endpoints ---
-    @GET("user")
+    @GET("users")
     suspend fun getUserByEmail(@Query("email") email: String): List<UserResponse>
 
-    @POST("user")
+    @POST("users")
     suspend fun registerUser(@Body user: UserRequest): UserResponse
 
     // --- Memo Endpoints ---

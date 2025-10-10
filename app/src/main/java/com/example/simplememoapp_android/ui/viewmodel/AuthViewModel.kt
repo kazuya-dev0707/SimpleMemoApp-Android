@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.simplememoapp_android.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,9 +55,23 @@ class AuthViewModel @Inject constructor(
     fun register() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            userRepository.register(_uiState.value.email.trim(), _uiState.value.password.trim())
+            val email = _uiState.value.email.trim()
+            val password = _uiState.value.password.trim()
+
+            userRepository.register(email, password)
                 .onSuccess {
-                    _eventFlow.emit(AuthUiEvent.NavigateTo("memo_list"))
+                    // ★★★ MockAPIの準備が整うまで、少しだけ待つ ★★★
+                    delay(1000L) // 1秒待機
+
+                    // 登録成功後、そのままログイン処理を呼び出す
+                    userRepository.login(email, password)
+                        .onSuccess {
+                            // ログインにも成功したら、画面遷移イベントを発行
+                            _eventFlow.emit(AuthUiEvent.NavigateTo("memo_list"))
+                        }
+                        .onFailure { e ->
+                            _eventFlow.emit(AuthUiEvent.ShowSnackbar(e.message ?: "登録後のログインに失敗しました"))
+                        }
                 }
                 .onFailure { e ->
                     _eventFlow.emit(AuthUiEvent.ShowSnackbar(e.message ?: "新規登録に失敗しました"))
